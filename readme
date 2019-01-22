@@ -1,0 +1,31 @@
+1，静态资源的加载
+    springboot在引入web模块后，就会启动自动加载与web有关的配置,所有配置内容可在:
+        WebMvcAutoConfiguration中查看.下面是有关静态资源加载的逻辑,先看一个类:
+        ResourceProperties
+        可以看到这个类是在加载配置文件中有关静态资源的参数，比如缓存时间等。参数前缀是spring.resources。
+
+        在WebMvcAutoConfiguration这个类中，可以找到addResourceHandlers这个资源映射方法：
+
+        webjars 方式:
+        在其中可以看到，所有包含有/webjars/**的访问路径都会去classpath:/META-INF/resources/webjars/这个目录下寻找资源是没错的
+        WebJars是将Web前端js和CSS等资源打包成Java的Jar包，这样在Web开发中我们可以借助Maven对这些依赖库进行管理，保证这些Web资源版本唯一性，比如jQuery、Bootstrap等。
+
+
+        “/**”访问任何资源，默认会去以下位置查找资源:
+        String staticPathPattern = this.mvcProperties.getStaticPathPattern();这段代码得到的是"/**"这个字符串，也就是说，你访问的任何路径若是没有处理器来处理的话 ，默认会去这里来找资源：this.resourceProperties.getStaticLocations():
+
+            "classpath:/META-INF/resource/"
+            "classpath:/resources/",
+            "classpath:/static/",
+            "classpath:/public/"
+
+2.欢迎页的加载
+    在WebMvcAutoConfiguration这个类中，可以找到welcomePageHandlerMapping这个欢迎页映射方法：
+    首先看一下getWelcomePage()这个方法，其逻辑就是循环各个静态资源路径，在其后匹配上index.html,然后首先在哪个静态资源路径下找到了index.html就将此index.html返回。
+
+    我们可以在classpath:/static/这个目录下新建一个index.html文件，然后直接访问localhost:8080,可以看到定位到了index.html文件。
+
+3、应用图标的加载 favicon.ico
+    在WebMvcAutoConfiguration这个类中，可以找到FaviconConfiguration这个图标配置的内部类
+    逻辑和欢迎页差不多，只要你将你的图标置于静态资源文件夹中，就会将你自己的favicon.ico这个图标文件作为应用程序的图标
+
